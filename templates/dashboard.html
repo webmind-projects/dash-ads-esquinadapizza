@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block head_extra %}
+<!-- Plotly.js para gráficos interativos -->
+<script src="https://cdn.plot.ly/plotly-2.35.0.min.js" charset="utf-8"></script>
+{% endblock %}
+
+{% block content %}
+<!-- ============================================================
+     TÍTULO DA PÁGINA
+     ============================================================ -->
+<div class="page-title">
+    <h1><i data-lucide="layout-dashboard" style="vertical-align: middle; margin-right: 8px;"></i>Dashboard de Campanhas
+    </h1>
+    <p>Acompanhe o desempenho dos seus anúncios em tempo real</p>
+</div>
+
+<!-- ============================================================
+     FILTROS
+     ============================================================ -->
+<form id="filtros-form" class="filtros-section" method="GET" action="{{ url_for('dashboard') }}">
+    <div class="filtro-group">
+        <label for="filtro-periodo">Período</label>
+        <select id="filtro-periodo" name="periodo">
+            <option value="todos" {{ 'selected' if filtro_periodo=='todos' }}>Todos os períodos</option>
+            <option value="hoje" {{ 'selected' if filtro_periodo=='hoje' }}>Hoje</option>
+            <option value="semana_atual" {{ 'selected' if filtro_periodo=='semana_atual' }}>Semana atual</option>
+            <option value="semana_passada" {{ 'selected' if filtro_periodo=='semana_passada' }}>Semana passada</option>
+            <option value="custom" {{ 'selected' if filtro_periodo=='custom' }}>Intervalo customizado</option>
+        </select>
+    </div>
+
+    <div id="custom-range" class="custom-range"
+        style="{{ 'display: flex' if filtro_periodo == 'custom' else 'display: none' }}">
+        <div class="filtro-group">
+            <label for="filtro-data-inicio">Data Início</label>
+            <input type="date" id="filtro-data-inicio" name="data_inicio" value="{{ filtro_data_inicio }}">
+        </div>
+        <div class="filtro-group">
+            <label for="filtro-data-fim">Data Fim</label>
+            <input type="date" id="filtro-data-fim" name="data_fim" value="{{ filtro_data_fim }}">
+        </div>
+    </div>
+
+    <div class="filtro-group">
+        <label for="filtro-publico">Público-Alvo</label>
+        <select id="filtro-publico" name="publico">
+            <option value="todos" {{ 'selected' if filtro_publico=='todos' }}>Todos os públicos</option>
+            {% for p in publicos %}
+            <option value="{{ p }}" {{ 'selected' if filtro_publico==p }}>{{ p }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn-filtrar" id="btn-filtrar">Filtrar</button>
+</form>
+
+{% if tabela %}
+<!-- ============================================================
+     CARDS KPI
+     ============================================================ -->
+<section class="kpi-grid" aria-label="Indicadores de desempenho">
+    <div class="kpi-card kpi-card--investido" id="kpi-investido">
+        <span class="kpi-icon"><i data-lucide="dollar-sign"></i></span>
+        <div class="kpi-label">Total Investido</div>
+        <div class="kpi-value" data-target="{{ kpis.total_investido }}" data-type="moeda">R$ 0,00</div>
+    </div>
+
+    <div class="kpi-card kpi-card--visualizacoes" id="kpi-visualizacoes">
+        <span class="kpi-icon"><i data-lucide="eye"></i></span>
+        <div class="kpi-label">Visualizações</div>
+        <div class="kpi-value" data-target="{{ kpis.total_visualizacoes }}" data-type="inteiro">0</div>
+    </div>
+
+    <div class="kpi-card kpi-card--conversas" id="kpi-conversas">
+        <span class="kpi-icon"><i data-lucide="message-square"></i></span>
+        <div class="kpi-label">Conversas Iniciadas</div>
+        <div class="kpi-value" data-target="{{ kpis.total_conversas }}" data-type="inteiro">0</div>
+    </div>
+
+    <div class="kpi-card kpi-card--entregas" id="kpi-entregas">
+        <span class="kpi-icon"><i data-lucide="package"></i></span>
+        <div class="kpi-label">Entregas</div>
+        <div class="kpi-value" data-target="{{ kpis.total_entregas }}" data-type="inteiro">0</div>
+    </div>
+
+    <div class="kpi-card kpi-card--taxa" id="kpi-taxa">
+        <span class="kpi-icon"><i data-lucide="shopping-bag"></i></span>
+        <div class="kpi-label">Custo por Conversa</div>
+        <div class="kpi-value" data-target="{{ kpis.custo_por_conversa_geral }}" data-type="moeda">R$ 0,00</div>
+        <div class="kpi-detail">Investido ÷ Conversas</div>
+    </div>
+</section>
+
+<!-- ============================================================
+     PAINEL RÁPIDO — ENTREGAS DO DIA
+     ============================================================ -->
+<section class="entregas-panel" aria-label="Registro diário de entregas">
+    <div class="entregas-panel-header">
+        <h3>
+            <i data-lucide="package"
+                style="vertical-align:middle;margin-right:8px;width:18px;height:18px;color:var(--cor-secundaria);"></i>
+            Entregas da Pizzaria
+        </h3>
+        <span class="entregas-hint">Registre o total de entregas do dia (independente dos anúncios)</span>
+    </div>
+    <form id="form-entregas" method="POST" action="{{ url_for('registrar_entrega') }}" class="entregas-form">
+        <div class="entregas-inputs">
+            <div class="entrega-field">
+                <label for="data_entrega">Data</label>
+                <input type="date" id="data_entrega" name="data_entrega" value="{{ hoje }}" required>
+            </div>
+            <div class="entrega-field">
+                <label for="quantidade_entregas">Nº de Entregas</label>
+                <input type="number" id="quantidade_entregas" name="quantidade_entregas" min="0" placeholder="0"
+                    required>
+            </div>
+            <button type="submit" class="btn btn-primary" id="btn-salvar-entrega" style="align-self:flex-end;">
+                <i data-lucide="save" style="width:16px;height:16px;margin-right:6px;vertical-align:middle;"></i> Salvar
+            </button>
+        </div>
+    </form>
+    {% if entregas_recentes %}
+    <div class="entregas-recentes">
+        <span class="entregas-recentes-label">Registros recentes:</span>
+        <div class="entregas-chips">
+            {% for e in entregas_recentes %}
+            <span class="entrega-chip" title="{{ e.observacoes or '' }}">
+                <strong>{{ e.data_fmt }}</strong> — {{ e.quantidade }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</section>
+
+<!-- ============================================================
+     GRÁFICOS
+     ============================================================ -->
+{% if grafico_funil and grafico_barras %}
+<section class="charts-grid" aria-label="Gráficos de desempenho">
+    <div class="chart-section" id="chart-funil">
+        <h3><i data-lucide="filter"
+                style="vertical-align: middle; margin-right: 8px; width: 18px; height: 18px; color: var(--cor-terciaria);"></i>Funil
+            de Conversão</h3>
+        <div class="chart-container">
+            {{ grafico_funil|safe }}
+        </div>
+    </div>
+
+    <div class="chart-section" id="chart-barras">
+        <h3><i data-lucide="bar-chart-2"
+                style="vertical-align: middle; margin-right: 8px; width: 18px; height: 18px; color: var(--cor-primaria);"></i>Comparativo
+            por Campanha</h3>
+        <div class="chart-container">
+            {{ grafico_barras|safe }}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if grafico_linha %}
+<section class="charts-grid charts-grid--full" aria-label="Tendência semanal">
+    <div class="chart-section" id="chart-linha">
+        <h3><i data-lucide="trending-up"
+                style="vertical-align: middle; margin-right: 8px; width: 18px; height: 18px; color: var(--cor-secundaria);"></i>Tendência
+            Semanal</h3>
+        <div class="chart-container">
+            {{ grafico_linha|safe }}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ============================================================
+     TABELA DETALHADA
+     ============================================================ -->
+<section class="table-section" aria-label="Tabela de campanhas">
+    <h2><i data-lucide="list"
+            style="vertical-align: middle; margin-right: 8px; width: 22px; height: 22px; color: var(--cor-terciaria);"></i>Campanhas
+        Detalhadas</h2>
+    <div class="table-wrapper">
+        <table class="tabela-campanhas" id="tabela-campanhas">
+            <thead>
+                <tr>
+                    <th data-sort="codigo">Cód.</th>
+                    <th data-sort="nome">Campanha</th>
+                    <th>Link Ad</th>
+                    <th data-sort="publico">Público</th>
+                    <th data-sort="inicio">Início</th>
+                    <th data-sort="fim">Fim</th>
+                    <th data-sort="gasto">Gasto</th>
+                    <th data-sort="vis">Visualiz.</th>
+                    <th data-sort="conv">Conversas</th>
+                    <th data-sort="cpc">Custo/Conv.</th>
+                    <th data-sort="cpm">CPM</th>
+                    <th data-sort="dias">Dias</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in tabela %}
+                <tr>
+                    <td style="font-family:monospace;font-weight:700;color:var(--cor-terciaria);">{{ c.codigo_campanha
+                        or '—' }}</td>
+                    <td>
+                        <strong>{{ c.nome_campanha }}</strong>
+                        {% if c.observacoes %}
+                        <br><small class="text-muted" title="{{ c.observacoes }}"><i data-lucide="clipboard-list"
+                                style="width:14px;height:14px;vertical-align:middle;margin-right:2px;"></i> {{
+                            c.observacoes[:40] }}{{ '...' if c.observacoes|length > 40 }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.link_anuncio %}
+                        <a href="{{ c.link_anuncio }}" target="_blank" class="btn btn-secondary btn-sm" style="padding: 4px 8px;" title="Ver anúncio e criativo">
+                            <i data-lucide="external-link" style="width:12px;height:12px;vertical-align:middle;"></i> Ver Ad
+                        </a>
+                        {% else %}
+                        <span class="text-muted" style="color: var(--texto-terciario);">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ c.publico_alvo }}</td>
+                    <td data-value="{{ c.data_inicio }}">{{ c.data_inicio }}</td>
+                    <td data-value="{{ c.data_fim }}">{{ c.data_fim }}</td>
+                    <td class="valor-monetario" data-value="{{ c.valor_gasto_raw }}">{{ c.valor_gasto }}</td>
+                    <td data-value="{{ c.visualizacoes_raw }}">{{ c.visualizacoes }}</td>
+                    <td data-value="{{ c.conversas_raw }}">{{ c.conversas_iniciadas }}</td>
+                    <td class="valor-monetario">{{ c.custo_por_conversa }}</td>
+                    <td class="valor-monetario">{{ c.cpm }}</td>
+                    <td>{{ c.dias_ativos }}d</td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{{ url_for('editar_campanha', campanha_id=c.id) }}"
+                                class="btn btn-secondary btn-sm" title="Editar campanha" id="btn-editar-{{ c.id }}">
+                                <i data-lucide="edit-3" style="width:14px;height:14px;"></i>
+                            </a>
+                            <form action="{{ url_for('excluir_campanha', campanha_id=c.id) }}" method="POST"
+                                style="display:inline">
+                                <button type="submit" class="btn btn-danger btn-sm btn-excluir"
+                                    data-nome="{{ c.nome_campanha }}" title="Excluir campanha"
+                                    id="btn-excluir-{{ c.id }}">
+                                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% else %}
+<!-- ============================================================
+     ESTADO VAZIO
+     ============================================================ -->
+<section class="estado-vazio">
+    <div class="estado-vazio-icon"><i data-lucide="inbox"
+            style="width: 48px; height: 48px; stroke-width: 1.5; color: var(--texto-secundario);"></i></div>
+    <h3>Nenhuma campanha encontrada</h3>
+    <p>
+        {% if filtro_periodo != 'todos' or filtro_publico != 'todos' %}
+        Não há campanhas para os filtros selecionados. Tente ajustar os filtros.
+        {% else %}
+        Cadastre sua primeira campanha para começar a acompanhar os resultados.
+        {% endif %}
+    </p>
+    <button type="button" class="btn btn-primary" id="btn-primeira-campanha"
+        onclick="document.getElementById('btn-nova-campanha-modal').click();">
+        <i data-lucide="plus" style="width: 16px; height: 16px; margin-right: 4px; vertical-align: middle;"></i>
+        Cadastrar Campanha
+    </button>
+</section>
+{% endif %}
+
+{% endblock %}

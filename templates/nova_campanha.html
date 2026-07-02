@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Nova Campanha{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <h1><i data-lucide="plus-circle" style="vertical-align: middle; margin-right: 8px;"></i>Nova Campanha</h1>
+    <p>Cadastre os dados de uma nova campanha de anúncio</p>
+</div>
+
+<section class="form-section">
+    <form id="form-campanha" method="POST" action="{{ url_for('nova_campanha') }}">
+        <div class="form-grid">
+            <div class="form-group form-group--full">
+                <label for="nome_campanha">
+                    Nome da Campanha <span class="required">*</span>
+                </label>
+                <input type="text" 
+                       id="nome_campanha" 
+                       name="nome_campanha" 
+                       value="{{ form_data.get('nome_campanha', '') }}"
+                       placeholder="Ex: Promo Terça da Pizza"
+                       required
+                       maxlength="200">
+            </div>
+
+            <!-- Link do Anúncio -->
+            <div class="form-group form-group--full">
+                <label for="link_anuncio">
+                    Link do Anúncio (URL)
+                </label>
+                <input type="url" 
+                       id="link_anuncio" 
+                       name="link_anuncio" 
+                       value="{{ form_data.get('link_anuncio', '') }}"
+                       placeholder="Ex: https://www.facebook.com/ads/library/?id=..."
+                       maxlength="500">
+                <span class="form-hint">Opcional — link para visualizar o anúncio ou criativo</span>
+            </div>
+
+            <!-- Código Único da Campanha -->
+            <div class="form-group">
+                <label for="codigo_letra">
+                    Letra do Código
+                </label>
+                <input type="text" 
+                       id="codigo_letra"
+                       name="codigo_letra"
+                       value="{{ form_data.get('codigo_letra', '') }}"
+                       placeholder="A"
+                       maxlength="1"
+                       style="text-transform: uppercase;"
+                       oninput="atualizarCodigo()">
+                <span class="form-hint">1 letra que identifica a campanha (ex: A, B, C...)</span>
+            </div>
+
+            <div class="form-group">
+                <label for="codigo_campanha">
+                    Código da Campanha
+                </label>
+                <input type="text" 
+                       id="codigo_campanha"
+                       name="codigo_campanha"
+                       value="{{ form_data.get('codigo_campanha', '') }}"
+                       placeholder="Auto-gerado (ex: A21-25)"
+                       maxlength="20"
+                       style="font-family: monospace; letter-spacing: 0.05em;">
+                <span class="form-hint">Deixe em branco para gerar automaticamente com base nas datas</span>
+            </div>
+
+            <!-- Público-Alvo -->
+            <div class="form-group form-group--full">
+                <label for="publico_alvo">
+                    Público-Alvo <span class="required">*</span>
+                </label>
+                <input type="text" 
+                       id="publico_alvo" 
+                       name="publico_alvo" 
+                       value="{{ form_data.get('publico_alvo', '') }}"
+                       placeholder="Ex: Zona Sul - 18 a 45 anos"
+                       list="publicos-lista"
+                       required
+                       maxlength="200">
+                <datalist id="publicos-lista">
+                    {% for p in publicos %}
+                    <option value="{{ p }}">
+                    {% endfor %}
+                </datalist>
+                <span class="form-hint"><i data-lucide="info" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 2px;"></i> Comece a digitar para ver sugestões de públicos já cadastrados</span>
+            </div>
+
+            <!-- Data Início -->
+            <div class="form-group">
+                <label for="data_inicio">
+                    Data de Início <span class="required">*</span>
+                </label>
+                <input type="date" 
+                       id="data_inicio" 
+                       name="data_inicio" 
+                       value="{{ form_data.get('data_inicio', '') }}"
+                       oninput="atualizarCodigo()"
+                       required>
+            </div>
+
+            <!-- Data Fim -->
+            <div class="form-group">
+                <label for="data_fim">
+                    Data de Fim <span class="required">*</span>
+                </label>
+                <input type="date" 
+                       id="data_fim" 
+                       name="data_fim" 
+                       value="{{ form_data.get('data_fim', '') }}"
+                       oninput="atualizarCodigo()"
+                       required>
+                <span class="form-hint">Deve ser igual ou posterior à data de início</span>
+            </div>
+
+            <!-- Valor Gasto -->
+            <div class="form-group">
+                <label for="valor_gasto">
+                    Valor Gasto (R$) <span class="required">*</span>
+                </label>
+                <input type="number" 
+                       id="valor_gasto" 
+                       name="valor_gasto" 
+                       value="{{ form_data.get('valor_gasto', '') }}"
+                       placeholder="0.00"
+                       step="0.01"
+                       min="0"
+                       required>
+                <span class="form-hint">Use ponto como separador decimal (ex: 150.00)</span>
+            </div>
+
+            <!-- Visualizações -->
+            <div class="form-group">
+                <label for="visualizacoes">
+                    Visualizações <span class="required">*</span>
+                </label>
+                <input type="number" 
+                       id="visualizacoes" 
+                       name="visualizacoes" 
+                       value="{{ form_data.get('visualizacoes', '') }}"
+                       placeholder="0"
+                       min="0"
+                       required>
+            </div>
+
+            <!-- Conversas Iniciadas -->
+            <div class="form-group">
+                <label for="conversas_iniciadas">
+                    Conversas Iniciadas <span class="required">*</span>
+                </label>
+                <input type="number" 
+                       id="conversas_iniciadas" 
+                       name="conversas_iniciadas" 
+                       value="{{ form_data.get('conversas_iniciadas', '') }}"
+                       placeholder="0"
+                       min="0"
+                       required>
+            </div>
+
+            <!-- Observações -->
+            <div class="form-group form-group--full">
+                <label for="observacoes">
+                    Observações
+                </label>
+                <textarea id="observacoes" 
+                          name="observacoes" 
+                          placeholder="Anotações opcionais — ex: campanha pausada no dia X, mudança de configuração..."
+                          maxlength="500">{{ form_data.get('observacoes', '') }}</textarea>
+                <span class="form-hint">Opcional — útil para registrar contexto da campanha</span>
+            </div>
+
+            <!-- Ações -->
+            <div class="form-actions">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" id="btn-cancelar">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary" id="btn-salvar">
+                    <i data-lucide="save" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i> Cadastrar Campanha
+                </button>
+            </div>
+        </div>
+    </form>
+</section>
+
+<script>
+function atualizarCodigo() {
+    const letra = (document.getElementById('codigo_letra').value || 'A').toUpperCase().charAt(0);
+    const dataInicio = document.getElementById('data_inicio').value;
+    const dataFim = document.getElementById('data_fim').value;
+    const campoCodigo = document.getElementById('codigo_campanha');
+
+    // Só atualiza se o campo estiver vazio ou com valor auto-gerado anterior
+    if (!campoCodigo.dataset.manual && dataInicio && dataFim) {
+        const diaIni = String(new Date(dataInicio + 'T00:00:00').getDate()).padStart(2, '0');
+        const diaFim = String(new Date(dataFim + 'T00:00:00').getDate()).padStart(2, '0');
+        campoCodigo.value = `${letra}${diaIni}-${diaFim}`;
+    }
+}
+
+// Marca como edição manual se o usuário digitar no campo código
+document.getElementById('codigo_campanha').addEventListener('input', function() {
+    this.dataset.manual = this.value ? 'true' : '';
+});
+
+// Gera código inicial se já houver datas (retorno de formulário com erro)
+atualizarCodigo();
+</script>
+{% endblock %}

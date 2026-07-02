@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dashboard de Relatório de Campanhas — Esquina da Pizza Delivery">
+    <title>{% block title %}Dashboard{% endblock %} — Esquina da Pizza</title>
+
+    <!-- Google Fonts — Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Plotly.js CDN (somente na dashboard) -->
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+    <header class="header">
+        <div class="container">
+            <a href="{{ url_for('dashboard') }}" class="header-brand">
+                <img src="{{ url_for('static', filename='assets/logo.png') }}" 
+                     alt="Logo Esquina da Pizza" 
+                     class="header-logo"
+                     onerror="this.style.display='none'">
+                <div>
+                    <div class="header-title">Esquina da Pizza</div>
+                    <div class="header-subtitle">Relatório de Campanhas</div>
+                </div>
+            </a>
+
+            <nav class="header-nav">
+                <button type="button" class="btn-circular" id="btn-nova-campanha-modal" title="Nova Campanha">
+                    <i data-lucide="plus"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ============================================================
+         FLASH MESSAGES
+         ============================================================ -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}" role="alert">
+                <span>{{ message }}</span>
+                <button class="flash-close" aria-label="Fechar">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- ============================================================
+         CONTEÚDO PRINCIPAL
+         ============================================================ -->
+    <main class="page-content">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- ============================================================
+         MODAL NOVA CAMPANHA
+         ============================================================ -->
+    <div id="modal-nova-campanha" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i data-lucide="plus-circle" style="vertical-align: middle; margin-right: 8px;"></i>Nova Campanha</h2>
+                <button type="button" class="modal-close" id="btn-fechar-modal" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-campanha-modal" method="POST" action="{{ url_for('nova_campanha') }}">
+                    <div class="form-grid">
+                        <div class="form-group form-group--full">
+                            <label for="modal_nome_campanha">Nome da Campanha <span class="required">*</span></label>
+                            <input type="text" id="modal_nome_campanha" name="nome_campanha" required placeholder="Ex: Promo Terça da Pizza" maxlength="200">
+                        </div>
+                        <div class="form-group form-group--full">
+                            <label for="modal_publico_alvo">Público-Alvo <span class="required">*</span></label>
+                            <input type="text" id="modal_publico_alvo" name="publico_alvo" required placeholder="Ex: Zona Sul - 18 a 45 anos" list="modal-publicos-lista" maxlength="200">
+                            <datalist id="modal-publicos-lista">
+                                <!-- Populado dinamicamente via JS -->
+                            </datalist>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal_data_inicio">Data de Início <span class="required">*</span></label>
+                            <input type="date" id="modal_data_inicio" name="data_inicio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal_data_fim">Data de Fim <span class="required">*</span></label>
+                            <input type="date" id="modal_data_fim" name="data_fim" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal_valor_gasto">Valor Gasto (R$) <span class="required">*</span></label>
+                            <input type="number" id="modal_valor_gasto" name="valor_gasto" step="0.01" min="0" required placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="modal_visualizacoes">Views <span class="required">*</span></label>
+                            <input type="number" id="modal_visualizacoes" name="visualizacoes" min="0" required placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="modal_conversas_iniciadas">Conv. Inic. <span class="required">*</span></label>
+                            <input type="number" id="modal_conversas_iniciadas" name="conversas_iniciadas" min="0" required placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="modal_entregas">Entregas <span class="required">*</span></label>
+                            <input type="number" id="modal_entregas" name="entregas" min="0" required placeholder="0">
+                        </div>
+                        <div class="form-group form-group--full">
+                            <label for="modal_observacoes">Observações</label>
+                            <textarea id="modal_observacoes" name="observacoes" placeholder="Anotações opcionais..." maxlength="500"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="btn-cancelar-modal">Cancelar</button>
+                            <button type="submit" class="btn btn-success">Salvar Campanha</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Inicializa ícones Lucide
+        lucide.createIcons();
+    </script>
+    {% block scripts_extra %}{% endblock %}
+</body>
+</html>
