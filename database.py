@@ -8,15 +8,20 @@ Gerencia a conexão com o banco de dados e criação da tabela 'campanhas'.
 import sqlite3
 import os
 
-# Caminho do banco de dados (mesmo diretório do projeto)
-DATABASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db')
+# Caminho do banco de dados (configurável via variável de ambiente, padrão é no próprio diretório)
+DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db'))
 
 
 def get_db():
     """
     Abre e retorna uma conexão com o banco SQLite.
+    Garante que o diretório pai existe.
     Configura Row factory para acesso por nome de coluna.
     """
+    diretorio = os.path.dirname(DATABASE_PATH)
+    if diretorio and not os.path.exists(diretorio):
+        os.makedirs(diretorio, exist_ok=True)
+
     conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row  # Permite acesso por nome: row['coluna']
     conn.execute("PRAGMA journal_mode=WAL")  # Melhor performance de escrita
