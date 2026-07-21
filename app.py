@@ -196,11 +196,11 @@ def gerar_grafico_funil(df):
     vis_100x = round(total_vis / 100, 1) if total_vis > 0 else 0
 
     fig = go.Figure(go.Funnel(
-        y=['Visto 100x', 'Conversas'],
+        y=['Visto 100x', 'Leads'],
         x=[vis_100x, total_conv],
         text=[
             f'{vis_100x:,.2f}x ({formatar_numero(total_vis)})',
-            f'{formatar_numero(total_conv)} conversas'
+            f'{formatar_numero(total_conv)} leads'
         ],
         textinfo='text+percent initial',
         textfont=dict(size=13, family='Inter, sans-serif'),
@@ -253,13 +253,13 @@ def gerar_grafico_barras(df):
     ))
 
     fig.add_trace(go.Bar(
-        name='Conversas',
+        name='Leads',
         x=df_plot['label'],
         y=df_plot['conversas_iniciadas'],
         marker_color=CORES['dourado'],
         marker_line=dict(width=0),
         customdata=df_plot['hover_nome'],
-        hovertemplate='<b>%{customdata}</b><br>Conversas: %{y}<extra></extra>',
+        hovertemplate='<b>%{customdata}</b><br>Leads: %{y}<extra></extra>',
         opacity=0.9,
     ))
 
@@ -324,14 +324,14 @@ def gerar_grafico_linha(df, df_entregas=None):
     ))
 
     fig.add_trace(go.Scatter(
-        name='Conversas (anúncios)',
+        name='Leads (anúncios)',
         x=semanal['semana'],
         y=semanal['conversas_iniciadas'],
         mode='lines+markers',
         line=dict(color=CORES['dourado'], width=2.5),
         marker=dict(size=7, symbol='diamond'),
         yaxis='y2',
-        hovertemplate='<b>Semana de %{x|%d/%m}</b><br>Conversas: %{y}<extra></extra>',
+        hovertemplate='<b>Semana de %{x|%d/%m}</b><br>Leads: %{y}<extra></extra>',
     ))
 
     # Overlay de entregas diárias (agrupadas por semana)

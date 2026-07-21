@@ -395,7 +395,7 @@ function initModal() {
             const camposNumericos = [
                 { id: 'modal_valor_gasto', label: 'Valor Gasto' },
                 { id: 'modal_visualizacoes', label: 'Views' },
-                { id: 'modal_conversas_iniciadas', label: 'Conv. Inic.' },
+                { id: 'modal_conversas_iniciadas', label: 'Leads WhatsApp' },
                 { id: 'modal_entregas', label: 'Entregas' }
             ];
             for (const campo of camposNumericos) {

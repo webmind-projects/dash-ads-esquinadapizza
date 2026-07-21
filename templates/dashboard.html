@@ -76,7 +76,7 @@
 
     <div class="kpi-card kpi-card--conversas" id="kpi-conversas">
         <span class="kpi-icon"><i data-lucide="message-square"></i></span>
-        <div class="kpi-label">Conversas Iniciadas</div>
+        <div class="kpi-label">Leads WhatsApp</div>
         <div class="kpi-value" data-target="{{ kpis.total_conversas }}" data-type="inteiro">0</div>
     </div>
 
@@ -88,9 +88,9 @@
 
     <div class="kpi-card kpi-card--taxa" id="kpi-taxa">
         <span class="kpi-icon"><i data-lucide="shopping-bag"></i></span>
-        <div class="kpi-label">Custo por Conversa</div>
+        <div class="kpi-label">Custo por Lead</div>
         <div class="kpi-value" data-target="{{ kpis.custo_por_conversa_geral }}" data-type="moeda">R$ 0,00</div>
-        <div class="kpi-detail">Investido ÷ Conversas</div>
+        <div class="kpi-detail">Investido ÷ Leads</div>
     </div>
 </section>
 
@@ -193,8 +193,8 @@
                     <th data-sort="fim">Fim</th>
                     <th data-sort="gasto">Gasto</th>
                     <th data-sort="vis">Visualiz.</th>
-                    <th data-sort="conv">Conversas</th>
-                    <th data-sort="cpc">Custo/Conv.</th>
+                    <th data-sort="conv">Leads</th>
+                    <th data-sort="cpc">Custo/Lead</th>
                     <th data-sort="cpm">CPM</th>
                     <th data-sort="dias">Dias</th>
                     <th>Ações</th>
@@ -215,8 +215,10 @@
                     </td>
                     <td>
                         {% if c.link_anuncio %}
-                        <a href="{{ c.link_anuncio }}" target="_blank" class="btn btn-secondary btn-sm" style="padding: 4px 8px;" title="Ver anúncio e criativo">
-                            <i data-lucide="external-link" style="width:12px;height:12px;vertical-align:middle;"></i> Ver Ad
+                        <a href="{{ c.link_anuncio }}" target="_blank" class="btn btn-secondary btn-sm"
+                            style="padding: 4px 8px;" title="Ver anúncio e criativo">
+                            <i data-lucide="external-link" style="width:12px;height:12px;vertical-align:middle;"></i>
+                            Ver Ad
                         </a>
                         {% else %}
                         <span class="text-muted" style="color: var(--texto-terciario);">—</span>
